@@ -113,7 +113,7 @@ include_directories(${PROJECT_SOURCE_DIR}/src/commom/math/)
 #   add cblas dir to search for cblas.h header for linear algebra
 include_directories(${PROJECT_SOURCE_DIR}/3rdparty/blas/CBLAS/include)
 #   add lapack dir to search for lapacke.h header for solving linear equations
-include_directories(${PROJECT_SOURCE_DIR}/3rdparty/lapack-3.7.0/LAPACKE/include)
+include_directories(${PROJECT_SOURCE_DIR}/3rdparty/lapack-3.7.0/build/include)
 #   add ziggurat source file to generate normal distribution random numbers
 include_directories(${PROJECT_SOURCE_DIR}/3rdparty/ziggurat)
 # add assimp lib dir
