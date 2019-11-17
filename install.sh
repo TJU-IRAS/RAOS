@@ -56,7 +56,9 @@ sleep 1
 cd $prjtop/3rdparty/
 tar -xvf glew.tgz glew-2.1.0/ >> /dev/null
 cd glew-2.1.0/
+export GLEW_DEST=./install
+echo " ==== ${GLEW_DEST} ===="
 make
-sudo make install
+make install
 
 echo "RAOS install completed..."
