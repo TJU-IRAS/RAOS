@@ -12,7 +12,6 @@
  */
 
 /* functions of class SimView which implements glut callbacks in SimUI.cxx */
-
 #include <GL/glew.h>
 #include GLUT_HEADER
 #include GLU_HEADER

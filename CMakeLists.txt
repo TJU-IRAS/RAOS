@@ -10,7 +10,7 @@ cmake_minimum_required(VERSION 3.2 FATAL_ERROR)
 #====================================================
 # ================ User can Access ==================
 #====================================================
-# RAOS features, comment out if not use
+# RAOS features, comment out if not need the Aero-olfaction simulation of propellers
 set(RAOS_FEATURE_WAKES "enable")
 
 #====================================================
@@ -47,16 +47,16 @@ elseif(UNIX AND NOT APPLE)
     #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
     #   compiler, use clang-3.8 instead of gcc-6 because cuda 8.0 does not support gcc-6 (2017-07-18) -std=c++11
     set (TOOL_DIR /usr)
-    set (CMAKE_C_COMPILER               "${TOOL_DIR}/bin/gcc-4.9")
-    #SET (CMAKE_C_COMPILER               "/usr/bin/gcc")
-    SET (CMAKE_C_FLAGS                  "-Wall -std=c11 -Wno-unused-but-set-variable -Wno-unused-variable")
+    #set (CMAKE_C_COMPILER               "${TOOL_DIR}/bin/gcc-4.9")
+    SET (CMAKE_C_COMPILER               "/usr/bin/gcc")
+    SET (CMAKE_C_FLAGS                  "-Wall -std=c11 -fPIC -Wno-unused-but-set-variable -Wno-unused-variable -Wno-comment")
     SET (CMAKE_C_FLAGS_DEBUG            "-g")
     SET (CMAKE_C_FLAGS_MINSIZEREL       "-Os -DNDEBUG")
     SET (CMAKE_C_FLAGS_RELEASE          "-O4 -DNDEBUG")
     SET (CMAKE_C_FLAGS_RELWITHDEBINFO   "-O2 -g")
-    set (CMAKE_CXX_COMPILER             "${TOOL_DIR}/bin/g++-4.9")
-    #SET (CMAKE_CXX_COMPILER             "/usr/bin/g++")
-    SET (CMAKE_CXX_FLAGS                "-Wall -std=c++11 -Wno-reorder -Wno-unused-but-set-variable -Wno-unused-variable")
+    #set (CMAKE_CXX_COMPILER             "${TOOL_DIR}/bin/g++-4.9")
+    SET (CMAKE_CXX_COMPILER             "/usr/bin/g++")
+    SET (CMAKE_CXX_FLAGS                "-Wall -std=c++11 -fPIC -std=gnu++11 -Wno-reorder -Wno-unused-but-set-variable -Wno-unused-variable -Wno-comment")
     SET (CMAKE_CXX_FLAGS_DEBUG          "-g")
     SET (CMAKE_CXX_FLAGS_MINSIZEREL     "-Os -DNDEBUG")
     SET (CMAKE_CXX_FLAGS_RELEASE        "-O4 -DNDEBUG")
@@ -85,15 +85,20 @@ message("Project Binary Dir: \"${PROJECT_BINARY_DIR}\"")
 #---- External FLTK related settings ----
 # Set FLTK_DIR to the directory which contains FLTKConfig.cmake file
 set(FLTK_DIR "${PROJECT_SOURCE_DIR}/3rdparty/fltk-1.3.3/build")
+
 # "NO_MODULE" tells CMake to search only for the FLTKConfig file, not using the FindFLTK.cmake supplied with CMake
 find_package(FLTK REQUIRED NO_MODULE)
 find_package(OpenGL REQUIRED)
+find_package(GLEW REQUIRED CONFIG)
+
 # gl.h and glu.h
 add_definitions(-DGL_HEADER="FL/gl.h" -DGLU_HEADER="FL/glu.h" -DGLUT_HEADER="FL/glut.H")
 #---- External CUDA related settings ----
 find_package(CUDA REQUIRED)
 # nvcc flags
-set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS};-gencode arch=compute_50,code=sm_50;-use_fast_math)
+# Note: Modify the arch and code according to your GPU's compute capability
+# Ex. RTX2060 - 7.5, GTX750M - 5.0
+set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS};-gencode; arch=compute_75,code=sm_75;-use_fast_math;-std=c++11;)
 #set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; -ccbin gcc;)
 #---- External HDF5 related, for data recording
 find_package(HDF5 COMPONENTS C CXX REQUIRED)
@@ -118,8 +123,12 @@ include_directories(${PROJECT_SOURCE_DIR}/3rdparty/lapack-3.7.0/build/include)
 include_directories(${PROJECT_SOURCE_DIR}/3rdparty/ziggurat)
 # add assimp lib dir
 include_directories(${PROJECT_SOURCE_DIR}/3rdparty/assimp-3.3.1/include)
-# add libglm libsoil GLFW head files
-include_directories(/usr/include)
+# add glfw include dir
+include_directories(${PROJECT_SOURCE_DIR}/3rdparty/glfw-3.3/include)
+# add glm include dir
+include_directories(${PROJECT_SOURCE_DIR}/3rdparty)
+# add SOIL include dir
+include_directories(${PROJECT_SOURCE_DIR}/3rdparty/SOIL/)
 
 #---- library files path settings ----
 # add library dir into lib path
@@ -135,6 +144,11 @@ include_directories(/usr/lib)
 
 # for -lgfortran
 link_directories(/usr/lib/gcc/x86_64-linux-gnu/5/)
+
+# for -lglfw
+link_directories(${PROJECT_SOURCE_DIR}/3rdparty/glfw-3.3/build/src/)
+# for -lSOIL
+link_directories(${PROJECT_SOURCE_DIR}/3rdparty/SOIL/lib)
 
 #---- start compiling ----
 set(LIB_UI_NAME ui)
@@ -194,21 +208,9 @@ add_executable(${PRJ_NAME} src/SimMain.cxx src/SimThread.cxx src/SimConfig.cxx s
         src/common/math/raos_math.cpp)
 add_dependencies(${PRJ_NAME} ${LIB_MODEL_NAME} ${LIB_UI_NAME} ${LIB_METHOD_NAME})
 
-#add_executable(car_demo_2d src/ui/draw/draw_2d_car.cpp)
-#target_link_libraries(car_demo_2d glfw)
-#target_link_libraries(car_demo_2d glut)
-#target_link_libraries(car_demo_2d GLEW)
-#target_link_libraries(car_demo_2d fltk)
-#target_link_libraries(car_demo_2d fltk_gl)
-
-add_executable(car_demo_3d src/ui/draw/draw_3d_car.cpp)
-target_link_libraries(car_demo_3d glfw)
-target_link_libraries(car_demo_3d glut)
-target_link_libraries(car_demo_3d GLEW)
-target_link_libraries(car_demo_3d fltk)
-target_link_libraries(car_demo_3d fltk_gl)
 #---- start linking ----
 # Note: the former line depends on the next line
+target_link_libraries(${LIB_UI_NAME} GLEW::GLEW)
 # link model library created above
 target_link_libraries(${PRJ_NAME} ${LIB_MODEL_NAME})
 # link GUI library created above
@@ -231,7 +233,7 @@ target_link_libraries(${PRJ_NAME} gfortran)
 # link extern hdf5 library
 target_link_libraries(${PRJ_NAME} ${HDF5_LIBRARIES})
 
-target_link_libraries(${PRJ_NAME} GLEW)
+#target_link_libraries(${PRJ_NAME} GLEW)
 target_link_libraries(${PRJ_NAME} assimp)
-target_link_libraries(${PRJ_NAME} SOIL)
 target_link_libraries(${PRJ_NAME} glfw)
+target_link_libraries(${PRJ_NAME} SOIL)

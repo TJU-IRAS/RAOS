@@ -33,7 +33,11 @@ public:
         std::vector<ShaderFile> fileVec;
         fileVec.push_back(ShaderFile(GL_VERTEX_SHADER, vertexPath));
         fileVec.push_back(ShaderFile(GL_FRAGMENT_SHADER, fragPath));
+#ifdef GL_GEOMETRY_SHADER_ARB
+        fileVec.push_back(ShaderFile(GL_GEOMETRY_SHADER_ARB, geometryPath));
+#else
         fileVec.push_back(ShaderFile(GL_GEOMETRY_SHADER, geometryPath));
+#endif
         loadFromFile(fileVec);
     }
 

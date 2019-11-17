@@ -130,7 +130,7 @@ void draw_ref_point(std::vector<Robot *> *robots)
         snprintf(name, sizeof(name), "%d", idx_robot + 1);
         glColor3f(0.3, 0.3, 0.3); // gray
         gl_font(FL_HELVETICA_BOLD, 12);
-        glRasterPos3fv(gl_pos);
+        //glRasterPos3fv(gl_pos);
         gl_draw(name, strlen(name));
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_LIGHTING);

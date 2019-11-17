@@ -33,7 +33,6 @@
 #include "ui/SimView.h" // 3D RAO view
 #include "SimThread.h"
 #include "SimConfig.h" // runtime RAOS configs
-#include <GLFW/glfw3.h>
 #include <sstream>
 #include <string>
 

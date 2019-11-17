@@ -21,6 +21,7 @@
 /*file operation*/
 #include <fstream>
 #include <iostream>
+#include <sstream>
 #include <boost/random.hpp>
 #include <boost/random/normal_distribution.hpp>
 #include <boost/algorithm/string.hpp>
@@ -248,7 +249,8 @@ void read_3D_csv(std::string filename, float (*A)[Y_N][Z_N], bool hasHeader = fa
     while (std::getline(infile, line))
     {
         line_counter++;
-        std::stringstream ss(line);
+        std::stringstream ss;
+        ss << line;
         if (z_idx >= 1)
         {
             //printf("Trying to read:[%s]",line.c_str());
