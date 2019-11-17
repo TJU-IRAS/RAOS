@@ -94,7 +94,9 @@ find_package(GLEW REQUIRED CONFIG)
 # gl.h and glu.h
 add_definitions(-DGL_HEADER="FL/gl.h" -DGLU_HEADER="FL/glu.h" -DGLUT_HEADER="FL/glut.H")
 #---- External CUDA related settings ----
-find_package(CUDA REQUIRED)
+if(RAOS_FEATURE_WAKES)
+    find_package(CUDA REQUIRED)
+endif()
 # nvcc flags
 # Note: Modify the arch and code according to your GPU's compute capability
 # Ex. RTX2060 - 7.5, GTX750M - 5.0
