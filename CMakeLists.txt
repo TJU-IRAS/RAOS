@@ -85,12 +85,11 @@ message("Project Binary Dir: \"${PROJECT_BINARY_DIR}\"")
 #---- External FLTK related settings ----
 # Set FLTK_DIR to the directory which contains FLTKConfig.cmake file
 set(FLTK_DIR "${PROJECT_SOURCE_DIR}/3rdparty/fltk-1.3.3/build")
-set(GLEW_DIR "${PROJECT_SOURCE_DIR}/3rdparty/glew-2.1.0/install")
 
 # "NO_MODULE" tells CMake to search only for the FLTKConfig file, not using the FindFLTK.cmake supplied with CMake
 find_package(FLTK REQUIRED NO_MODULE)
 find_package(OpenGL REQUIRED)
-find_package(GLEW REQUIRED CONFIG PATHS ${GLEW_DIR})
+find_package(GLEW REQUIRED CONFIG)
 
 # gl.h and glu.h
 add_definitions(-DGL_HEADER="FL/gl.h" -DGLU_HEADER="FL/glu.h" -DGLUT_HEADER="FL/glut.H")

@@ -51,7 +51,7 @@ fi
 if [ ${SYSTEM} = "LINUX" ]; then
     echo "Cleaning SOIL..."
     cd $prjtop/3rdparty/SOIL/lib
-    rm -rf *
+    rm -rf $prjtop/3rdparty/SOIL/lib/*
     cd $prjtop/3rdparty/SOIL/projects/makefile
     rm -rf obj
 fi
