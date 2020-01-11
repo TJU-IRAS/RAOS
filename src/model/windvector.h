@@ -11,20 +11,12 @@
 #include "model/SimModel.h"
 #include "model/environment.h"
 #include "model/plume.h"
+#include "SimScene.h"
 
 #define DRAW_GRID_VECTOR
 
-
 #define SAVE_WIND
 #define SAVE_WIND_PER 3
-
-//Scene Relate Param
-//Office
-#define WINDVECTOR_GRID    1.0
-#define WINDVECTOR_HEIGHT  1.5
-//Wind Tunnel
-//#define WINDVECTOR_GRID    0.05
-//#define WINDVECTOR_HEIGHT  0.4
 
 #define GET_WIND_BY_CUDA true
 

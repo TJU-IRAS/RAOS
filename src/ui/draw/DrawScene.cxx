@@ -14,6 +14,7 @@
 
 /* thread */
 #include <pthread.h>
+#include <iostream>
 
 #include "SimThread.h"
 #include "model/SimModel.h"
@@ -34,7 +35,6 @@
 #include "SimConfig.h"
 #include "method/method.h"
 
-
 GLfloat localAmb[4] = {0.7, 0.7, 0.7, 1.0};
 GLfloat ambient0[4] = {0.0, 0.0, 0.0, 1.0};
 GLfloat diffuse0[4] = {1.0, 1.0, 1.0, 1.0};
@@ -49,6 +49,9 @@ GLfloat position1[4] = {-2.0, 100.5, 1.0, 0.0};
  * draw everything (environment + quad rotor)
  *--------------------------------------------------------------------------
  */
+
+void draw_buildings();
+
 void DrawScene(void)
 {
     /* GL stuff */
@@ -72,6 +75,8 @@ void DrawScene(void)
     /* draw arena */
     draw_arena(SIM_ARENA_OBJ);
     //draw_arena(SIM_ARENA_BASIC);
+
+    draw_buildings();
 
     /* draw wind vector */
 #ifdef DRAW_VECTOR_IN_SCENE
@@ -106,5 +111,58 @@ void DrawScene_init(void) // call before DrawScene
     loadmodel_init();
     //SimConfig_t *config = SimConfig_get_configs();
     //WindVector_Init(config->arena.w, config->arena.l, 1.5 , config->common.dt);
+}
+
+void paint_building_roof(float* x, float* y, float height)
+{
+    //std::cout << "X: " << x[0] << " " << x[1] << std::endl;
+    //std::cout << "Y: " << y[0] << " " << y[1] << std::endl;
+
+    glCallList(GR_BODY);
+    glBegin(GL_POLYGON);
+    glVertex3f(x[0], height, y[0]);
+    glVertex3f(x[0], height, y[1]);
+    glVertex3f(x[1], height, y[1]);
+    glVertex3f(x[1], height, y[0]);
+    glEnd();
+}
+
+void draw_buildings()
+{
+    float x_offset = 15.0f;
+    float y_offset = 15.0f;
+    float z_offset = 0.0f;
+
+    float x_range[3][2] = {
+        {9.0f, 11.0f}, {14.0f, 16.0f}, {19.0f, 21.0f}
+    };
+    float y_range[3][2] = {
+        {9.0f, 11.0f}, {14.0f, 16.0f}, {19.0f, 21.0f}
+    };
+    float z_range[1][2] = {{0.0f, 4.0f}};
+
+    for(unsigned int idx = 0; idx < sizeof(x_range) / sizeof(float); idx++)
+    {
+        reinterpret_cast<float*>(x_range)[idx] -= x_offset;
+    }
+    for(unsigned int idx = 0; idx < sizeof(y_range) / sizeof(float); idx++)
+    {
+        reinterpret_cast<float*>(y_range)[idx] -= y_offset;
+    }
+    for(unsigned int idx = 0; idx < sizeof(z_range) / sizeof(float); idx++)
+    {
+        reinterpret_cast<float*>(z_range)[idx] -= z_offset;
+    }
+
+    float building_height = 4.0f;
+
+    for (unsigned int row_idx = 0; row_idx < 3; row_idx++)
+    {
+        for (unsigned int col_idx = 0; col_idx < 3; col_idx++)
+        {
+            paint_building_roof(reinterpret_cast<float*>(x_range[row_idx]), reinterpret_cast<float*>(y_range[col_idx]), building_height);
+        }
+    }
+
 }
 /* End of DrawScene.cxx */

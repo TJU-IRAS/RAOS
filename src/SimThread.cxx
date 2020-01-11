@@ -30,6 +30,10 @@
 #include "common/csv/csv.h"
 #include "ui/draw/draw_windvector.h"
 
+#include <highfive/H5File.hpp>
+#include <highfive/H5DataSet.hpp>
+#include <highfive/H5DataSpace.hpp>
+
 float winddata_X[X_N][Y_N][Z_N] = {0};
 float winddata_Y[X_N][Y_N][Z_N] = {0};
 float winddata_Z[X_N][Y_N][Z_N] = {0};
@@ -174,6 +178,43 @@ static bool winddata_end = false;
 
 void read_csv_test(int idx)
 {
+    //For buildings
+    std::string h5_filename = boost::str(boost::format("%s/data.h5") % wind_files_location);
+    std::vector<std::vector<std::vector<float> > > wind_u;
+    std::vector<std::vector<std::vector<float> > > wind_v;
+    std::vector<std::vector<std::vector<float> > > wind_w;
+
+    static bool already_load_wind = false;
+    if (!already_load_wind)
+    {
+        using namespace HighFive;
+        File occ_file(h5_filename, File::ReadOnly);
+        DataSet u_dataset = occ_file.getDataSet("/wind-u");
+        u_dataset.read(wind_u);
+
+        DataSet v_dataset = occ_file.getDataSet("/wind-v");
+        v_dataset.read(wind_v);
+
+        DataSet w_dataset = occ_file.getDataSet("/wind-w");
+        w_dataset.read(wind_w);
+
+        for (unsigned int x_idx = 0; x_idx < wind_u.size(); x_idx ++)
+        {
+            for (unsigned int y_idx = 0; y_idx < wind_u[0].size(); y_idx ++)
+            {
+                for (unsigned int z_idx = 0; z_idx < wind_u[0][0].size(); z_idx ++)
+                {
+                    winddata_X[x_idx][y_idx][z_idx] = wind_u[x_idx][y_idx][z_idx];
+                    winddata_Y[x_idx][y_idx][z_idx] = wind_v[x_idx][y_idx][z_idx];
+                    winddata_Z[x_idx][y_idx][z_idx] = wind_w[x_idx][y_idx][z_idx];
+                }
+            }
+        }
+
+        already_load_wind = true;
+    }
+    return ;
+
     //time_t time1,time2;
     //std::string csv_filename = boost::str( boost::format("%s/wind0.%i.csv") % wind_files_location % idx );
 

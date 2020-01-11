@@ -6,12 +6,16 @@
  */
 #include <cmath>
 #include <vector>
-#include <time.h> // for random seed
+#include <cstring>
+#include <iostream>
+#include <ctime> // for random seed
 #include "model/plume.h"
 #include "model/environment.h"
 #include "SimConfig.h"
 #include "ziggurat.h" // for normal distribution number
 #include "SimModel.h"
+
+unsigned char cube_obstacle_judge(float* pos);
 
 /*============== Filament Model ============*/
 #if defined(USE_FILAMENT_MODEL)
@@ -82,15 +86,53 @@ public:
             vm_y = (drand48() - 0.5);
             vm_z = (drand48() - 0.5);
             */
-            vm_x = 0.3 * r4_nor(seed, kn, fn, wn);
-            vm_y = 0.3 * r4_nor(seed, kn, fn, wn);
-            vm_z = 0.3 * r4_nor(seed, kn, fn, wn);
+            vm_x = 1.8 * r4_nor(seed, kn, fn, wn);
+            vm_y = 1.8 * r4_nor(seed, kn, fn, wn);
+            vm_z = 1.8 * r4_nor(seed, kn, fn, wn);
+            // vm_x = 0; vm_y = 0; vm_z = 0;
             // calculate pos increment
+            float last_pos[3] = {0};
+            memcpy(reinterpret_cast<float*>(last_pos), state.at(i).pos, 3 * sizeof(float));
+
             state.at(i).pos[0] += (wind[0] + vm_x + state.at(i).vel[0]) * sim_state->dt;
             state.at(i).pos[1] += (wind[1] + vm_y + state.at(i).vel[1]) * sim_state->dt;
             state.at(i).pos[2] += (wind[2] + vm_z + state.at(i).vel[2]) * sim_state->dt;
             if (state.at(i).pos[2] < 0.0)
                 state.at(i).pos[2] = -state.at(i).pos[2];
+
+            /*
+            if ( i == 0 )
+            {
+                std::cout << state.at(i).pos[0] << " " << state.at(i).pos[1] << " " << state.at(i).pos[2] << std::endl;
+            }
+            */
+
+            // obstacle judgement
+            while ( cube_obstacle_judge(state.at(i).pos) == 0x07 )
+            {
+                // In cube obstacle
+                unsigned char ret = cube_obstacle_judge(last_pos);
+                if ( (ret & static_cast<unsigned char>(1 << 0)) == 0 )
+                {
+                    // X collision
+                    state.at(i).pos[0] -= (wind[0] + vm_x + state.at(i).vel[0]) * sim_state->dt;
+                    state.at(i).pos[0] -= (wind[0] + vm_x + state.at(i).vel[0]) * sim_state->dt;
+                    //state.at(i).pos[1] += 0.5;
+                }
+                if ( (ret & static_cast<unsigned char>(1 << 1)) == 0 )
+                {
+                    // Y collision
+                    state.at(i).pos[1] -= (wind[1] + vm_y + state.at(i).vel[1]) * sim_state->dt;
+                    state.at(i).pos[1] -= (wind[1] + vm_y + state.at(i).vel[1]) * sim_state->dt;
+                }
+                if ( (ret & static_cast<unsigned char>(1 << 2)) == 0 )
+                {
+                    // Z collision
+                    state.at(i).pos[2] -= (wind[2] + vm_y + state.at(i).vel[2]) * sim_state->dt;
+                    state.at(i).pos[2] -= (wind[2] + vm_y + state.at(i).vel[2]) * sim_state->dt;
+                }
+            }
+
         }
         /* Step 2: update sizes of fila */
         for (unsigned int i = 0; i < state.size(); i++) // for each fila
@@ -193,6 +235,71 @@ void plume_destroy(void)
 std::vector<FilaState_t> *plume_get_fila_state(void)
 {
     return &fila->state;
+}
+
+unsigned char cube_obstacle_judge(float* pos)
+{
+    float x_range[3][2] = {
+        {9.0f, 11.0f}, {14.0f, 16.0f}, {19.0f, 21.0f}
+    };
+
+    float y_range[3][2] = {
+        {9.0f, 11.0f}, {14.0f, 16.0f}, {19.0f, 21.0f}
+    };
+
+    float z_range[1][2] = {{0.0f, 4.0f}};
+
+    float x_offset = 15.0f;
+    float y_offset = 15.0f;
+    float z_offset = 0.0f;
+
+    bool x_in_range = false;
+    for (unsigned char idx = 0; idx < sizeof(x_range) / sizeof(x_range[0]); idx++)
+    {
+        float cur_x = pos[0] + x_offset;
+        if ( cur_x >= x_range[idx][0] && cur_x <= x_range[idx][1] )
+        {
+            x_in_range = true;
+            break;
+        }
+    }
+
+    bool y_in_range = false;
+    for (unsigned char idx = 0; idx < sizeof(y_range) / sizeof(y_range[0]); idx++)
+    {
+        float cur_y = pos[1] + y_offset;
+        if ( cur_y >= y_range[idx][0] && cur_y <= y_range[idx][1] )
+        {
+            y_in_range = true;
+            break;
+        }
+    }
+
+    bool z_in_range = false;
+    for (unsigned char idx = 0; idx < sizeof(z_range) / sizeof(z_range[0]); idx++)
+    {
+        float cur_z = pos[2] + z_offset;
+        if ( cur_z >= z_range[idx][0] && cur_z <= z_range[idx][1] )
+        {
+            z_in_range = true;
+            break;
+        }
+    }
+
+    unsigned char ret = 0;
+    unsigned char x_ret = x_in_range ? static_cast<unsigned char>(1 << 0) : 0 ;
+    unsigned char y_ret = y_in_range ? static_cast<unsigned char>(1 << 1) : 0 ;
+    unsigned char z_ret = z_in_range ? static_cast<unsigned char>(1 << 2) : 0 ;
+    ret += x_ret;
+    ret += y_ret;
+    ret += z_ret;
+
+    if ( ret == 0x07 )
+    {
+        //std::cout << pos[0] << " " << pos[1] << " " << pos[2] << std::endl;
+    }
+
+    return ret;
 }
 
 #endif

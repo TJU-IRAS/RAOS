@@ -96,14 +96,12 @@ void draw_ground_robot_model(RobotState_t *state, GRframe_t *frame)
     float x = (float) (cos(angle) * r);
     float y = (float) (sin(angle) * r);
 
-
     frame->angle = state->att[2];
     glPushMatrix();
     glScalef(0.2, 0.2, 0.2);
     glRotatef(frame->angle, 0, 1, 0);
     car(state, frame);
     glPopMatrix();
-
 }
 
 void Cube()

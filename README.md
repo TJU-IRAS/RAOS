@@ -47,3 +47,14 @@ Help:
 
 Refer to https://developer.nvidia.com/cuda-gpus#compute;
 
+
+
+## OpenGL
+
+### 1. How to change NASA airplane to OpenGL coordinates
+
+```c
+glX = state->pos[0];
+glZ = -state->pos[1];
+glY = state->pos[2];
+```

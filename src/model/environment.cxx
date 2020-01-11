@@ -69,15 +69,17 @@ void SimEnvInfo::measure_wind(float *pos, float *wind)
 
     //Scene Related Param
     //Office
+    /*
     id_x = (int) round((pos[0] + 9.15) * 10);
     id_y = (int) round((pos[1] + 7.15) * 10);
     id_z = (int) round((pos[2]) * 3.3333);
-    /*
+    */
     //Wind Tunnel
+    ///*
     id_x = (int)round((pos[0] + Env_Size.width / 2.0) * 1.0f / WINDVECTOR_GRID);
     id_y = (int)round((pos[1] + Env_Size.length / 2.0) * 1.0f / WINDVECTOR_GRID);
     id_z = (int)round((pos[2]) * 1.0f / WINDVECTOR_GRID);
-    */
+    //*/
     //printf("id_x:%d,id_y:%d,id_z:%d\n",id_x,id_y,id_z );
 
     //limit mat index range method 1: if out of range ,then set the index to boundary.
@@ -121,14 +123,23 @@ void SimEnvInfo::measure_wind(float *pos, float *wind)
 
     //Scene Related Param
     //Office
+    /*
     wind[0] = 0.5 * winddata_X[id_x][id_y][id_z] + colored_noise(&wind_cn_params, &wind_cn_state[0], dt) + 0.0;
     wind[1] = 0.5 * winddata_Y[id_x][id_y][id_z] + colored_noise(&wind_cn_params, &wind_cn_state[1], dt) + 0.0;
     wind[2] = 0.5 * winddata_Z[id_x][id_y][id_z] + colored_noise(&wind_cn_params, &wind_cn_state[2], dt) + 0.0;
+    */
 
     //Wind Tunnel
-    //wind[0] = winddata_X[id_x][id_y][id_z];
-    //wind[1] = winddata_Y[id_x][id_y][id_z];
-    //wind[2] = winddata_Z[id_x][id_y][id_z];
+    /*
+    wind[0] = winddata_X[id_x][id_y][id_z];
+    wind[1] = winddata_Y[id_x][id_y][id_z];
+    wind[2] = winddata_Z[id_x][id_y][id_z];
+    */
+
+    //Buildings
+    wind[0] = winddata_X[id_x][id_y][id_z] / 5;
+    wind[1] = winddata_Y[id_x][id_y][id_z] / 5;
+    wind[2] = winddata_Z[id_x][id_y][id_z] / 5;
 
     //Wind from left to right
     //wind[0] = 0.2;

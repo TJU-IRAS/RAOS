@@ -104,6 +104,7 @@ set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS};-gencode; arch=compute_75,code=sm_75;-use
 #set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; -ccbin gcc;)
 #---- External HDF5 related, for data recording
 find_package(HDF5 COMPONENTS C CXX REQUIRED)
+find_package(HighFive 2.1 REQUIRED)
 include_directories(${HDF5_INCLUDE_DIRS})
 
 #$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
@@ -239,3 +240,5 @@ target_link_libraries(${PRJ_NAME} ${HDF5_LIBRARIES})
 target_link_libraries(${PRJ_NAME} assimp)
 target_link_libraries(${PRJ_NAME} glfw)
 target_link_libraries(${PRJ_NAME} SOIL)
+
+target_link_libraries(${PRJ_NAME} HighFive)
