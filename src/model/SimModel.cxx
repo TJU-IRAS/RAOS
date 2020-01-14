@@ -7,13 +7,14 @@
 #include <iostream>
 #include <vector>
 #include <string.h>
+#include <unistd.h>
+#include "method/simulated_annealing_method.h"
 #include "model/robot.h"
 #include "model/plume.h"
 
+
 #ifdef RAOS_FEATURE_WAKES
-
 #include "model/wake.h"
-
 #endif
 
 #include "model/SimModel.h"
@@ -23,6 +24,10 @@
 #include <stdio.h>
 
 #include "model/windvector.h"
+
+#include <highfive/H5File.hpp>
+#include <highfive/H5DataSet.hpp>
+#include <highfive/H5DataSpace.hpp>
 
 //#include "ui/draw/draw_windvector.h"
 
@@ -80,7 +85,8 @@ void SimModel_init(void)
 #ifdef METHOD_HOVER
     method_init(METHOD_HOVER_MEASURE);
 #else
-    method_init(METHOD_GAS_DIST_MAPPING); // gas distribution mapping
+    //method_init(METHOD_GAS_DIST_MAPPING);  // gas distribution mapping
+    method_init(METHOD_SIMULATED_ANNEALING); // simulated annealing source seaching
 #endif
 
 }
@@ -115,11 +121,13 @@ void SimModel_update(void)
 #endif
     update_time++;
     windget_updateVel();
-/* debug */
-/*
-std::vector<FilaState_t>* plume = plume_get_fila_state();
-printf("v_z = %f, size_m = %d\n", plume->back().vel[2], robots.at(0)->wakes.at(0)->wake_state[0]->size());
-*/
+
+    /* debug */
+    /*
+    std::vector<FilaState_t>* plume = plume_get_fila_state();
+    printf("v_z = %f, size_m = %d\n", plume->back().vel[2], robots.at(0)->wakes.at(0)->wake_state[0]->size());
+    */
+
     plume_update(&sim_state);
 
     /* calculate concentration at robot's position */
@@ -147,6 +155,7 @@ printf("v_z = %f, size_m = %d\n", plume->back().vel[2], robots.at(0)->wakes.at(0
     double mox_reading = robots.at(0)->center_mox_sensor.sensor.get_current_mox_reading(conc);
     double pid_reading = robots.at(0)->center_pid_sensor.sensor.get_current_pid_reading(conc);
 
+    // Update tdlas scan start point and end point according to its scan model
     robots.at(0)->center_tdlas_sensor.sensor.update_tdlas_scan(inner_point_t(robots.at(0)->state.pos),
                                                                inner_point_t(robots.at(0)->center_tdlas_sensor.pos));
     /*
@@ -164,7 +173,7 @@ printf("v_z = %f, size_m = %d\n", plume->back().vel[2], robots.at(0)->wakes.at(0
         + robots.at(0)->state.tdlas_ref_end_point[2];
     */
     double tdlas_reading = robots.at(0)->center_tdlas_sensor.sensor.get_current_tdlas_reading();
-
+    // Update tdlas start and end points for drawing
     robots.at(0)->state.tdlas_ref_start_point = inner_point_t(robots.at(0)->center_tdlas_sensor.pos);
     robots.at(0)->state.tdlas_ref_end_point = inner_point_t(robots.at(0)->center_tdlas_sensor.sensor.end_point) -
                                               inner_point_t(robots.at(0)->state.pos);
@@ -181,6 +190,7 @@ printf("v_z = %f, size_m = %d\n", plume->back().vel[2], robots.at(0)->wakes.at(0
 
     /* update timing */
     sim_state.time += sim_state.dt;
+    //usleep(1000 * 5);
 #ifdef RAOS_FEATURE_WAKES
     if (sim_state.time > 0.5 && sim_state.wake_initialized == false)
     {
@@ -213,6 +223,90 @@ void SimModel_destroy(void)
     // free dynamic memory in sim_env_info
     sim_env_info->destroy();
     delete sim_env_info;
+}
+
+float get_certain_pos_conc(inner_point_t pos)
+{
+    /* calculate concentration at certain position */
+    std::vector<FilaState_t> *puffs = plume_get_fila_state();
+    //Refer to Roice thesis 2.2.2, sigma represents the distortion matrix for odor package
+    float inv_sigma[3] = {1.42857, 9.34579, 9.34579};
+    float delta[3];
+    float power;
+    float conc = 0.0;
+    for (unsigned int i = 0; i < puffs->size(); i++)
+    {
+        power = 0.0;
+        // get delta
+        for (int k = 0; k < 3; k++)
+            delta[k] = pos[k] - puffs->at(i).pos[k];
+        for (int k = 0; k < 3; k++)
+            power += delta[k] * inv_sigma[k] * delta[k];
+        // calculate delta^T*sigma*delta
+        conc += 1.0 / 1.40995 * exp(-power);
+    }
+    return conc;
+}
+
+void SimModel_savesnap()
+{
+    float x_range[2] = {-15.0f, 15.0f};
+    float y_range[2] = {-15.0f, 15.0f};
+    float z_range[2] = {0.0f, 10.0f};
+
+    std::cout << "Begin save concentration snap" << std::endl;
+
+    using namespace HighFive;
+    File file("ConcSnap.h5", File::ReadWrite | File::Create | File::Truncate);
+    std::vector<size_t> dims(2);
+    dims[0] = 150 + 1;
+    dims[1] = 150 + 1;
+    DataSet dataset =
+        file.createDataSet<float>("Conc", DataSpace(dims));
+
+    std::vector<std::vector<float>> conc_snap;
+    for ( unsigned int x_idx = 0; x_idx < dims[0]; x_idx ++ )
+    {
+        std::vector<float> y_conc;
+        for ( unsigned int y_idx = 0; y_idx < dims[1]; y_idx ++ )
+        {
+            inner_point_t pos;
+            pos.x = x_idx * 0.2 + x_range[0];
+            pos.y = y_idx * 0.2 + y_range[0];
+            pos.z = 2.0f;
+            float conc = get_certain_pos_conc(pos);
+            y_conc.emplace_back(conc);
+        }
+        conc_snap.emplace_back(y_conc);
+    }
+    dataset.write(conc_snap);
+
+    std::vector<size_t> dims_path(2);
+    dims_path[0] = simulated_annealing_method::instance()->search_path_trajectory.size();
+    dims_path[1] = 3;
+    DataSet dataset_path =
+        file.createDataSet<float>("Path", DataSpace(dims_path));
+
+    std::vector<std::vector<float>> path_data;
+    for ( unsigned int path_idx = 0; path_idx < dims_path[0]; path_idx ++ )
+    {
+        inner_point_t point = simulated_annealing_method::instance()->search_path_trajectory[path_idx];
+        std::vector<float> pos_vec;
+        for ( unsigned int pos_idx = 0; pos_idx < dims_path[1]; pos_idx ++ )
+        {
+            pos_vec.emplace_back(point[pos_idx]);
+        }
+        path_data.emplace_back(pos_vec);
+    }
+    dataset_path.write(path_data);
+
+    std::vector<size_t> dims_path_type(1);
+    dims_path_type[0] = simulated_annealing_method::instance()->search_path_type.size();
+    DataSet dataset_path_type =
+        file.createDataSet<float>("PathType", DataSpace(dims_path_type));
+    dataset_path_type.write(simulated_annealing_method::instance()->search_path_type);
+
+    std::cout << "Finish saving concentration snap" << std::endl;
 }
 
 SimState_t *SimModel_get_sim_state(void)

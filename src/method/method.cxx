@@ -12,6 +12,7 @@
 #include "method/method.h"
 #include "method/hover_measure.h"
 #include "method/gas_dist_mapping.h"
+#include "method/simulated_annealing_method.h"
 
 static methodName_e current_method = METHOD_NONE;
 
@@ -31,6 +32,10 @@ bool method_init(methodName_e method_name)
             if (result)
                 current_method = METHOD_HOVER_MEASURE;
             break;
+        case METHOD_SIMULATED_ANNEALING:
+            simulated_annealing_method::instance()->init();
+            current_method = METHOD_SIMULATED_ANNEALING;
+            break;
         default:
             break;
     }
@@ -48,6 +53,9 @@ void method_update(SimState_t *sim_state)
         case METHOD_HOVER_MEASURE:
             hover_measure_update(sim_state);
             break;
+        case METHOD_SIMULATED_ANNEALING:
+            simulated_annealing_method::instance()->update(sim_state);
+            break;
         default:
             break;
     }
@@ -63,6 +71,10 @@ void method_stop(void)
             break;
         case METHOD_HOVER_MEASURE:
             hover_measure_stop();
+            current_method = METHOD_NONE;
+            break;
+        case METHOD_SIMULATED_ANNEALING:
+            simulated_annealing_method::instance()->stop();
             current_method = METHOD_NONE;
             break;
         default:

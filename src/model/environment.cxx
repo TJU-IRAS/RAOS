@@ -121,7 +121,7 @@ void SimEnvInfo::measure_wind(float *pos, float *wind)
 
 #ifdef ENV_WIND_CN
 
-    //Scene Related Param
+    //ToDo Scene Related Param
     //Office
     /*
     wind[0] = 0.5 * winddata_X[id_x][id_y][id_z] + colored_noise(&wind_cn_params, &wind_cn_state[0], dt) + 0.0;

@@ -11,7 +11,7 @@ cmake_minimum_required(VERSION 3.2 FATAL_ERROR)
 # ================ User can Access ==================
 #====================================================
 # RAOS features, comment out if not need the Aero-olfaction simulation of propellers
-set(RAOS_FEATURE_WAKES "enable")
+# set(RAOS_FEATURE_WAKES "enable")
 
 #====================================================
 # ============= Don't touch the following ===========
@@ -202,7 +202,9 @@ endif()
 
 # make a library from method files
 add_library(${LIB_METHOD_NAME} src/method/method.cxx
-        src/method/gas_dist_mapping.cxx src/method/hover_measure.cxx
+        src/method/gas_dist_mapping.cxx
+        src/method/hover_measure.cxx
+        src/method/simulated_annealing_method.cpp
         )
 # compile main file
 add_executable(${PRJ_NAME} src/SimMain.cxx src/SimThread.cxx src/SimConfig.cxx src/SimRecord.cxx

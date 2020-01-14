@@ -23,7 +23,8 @@ typedef enum
     PURPLE_MAT,  //purple
     GR_BODY,     //ground robot body
     GR_UP,       //ground robot up
-    GR_WHEEL     //ground wheel
+    GR_WHEEL,    //ground wheel
+    BUILDING_ROOF,
 } DisplayLists;
 
 void create_materials(void);

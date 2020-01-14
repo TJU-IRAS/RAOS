@@ -71,7 +71,7 @@ typedef struct
     float att[3]; // roll, pitch, yaw
     float att_vel[3]; // \dot{att}
     int leds;
-    float gas_sensor; // reading of gas sensor
+    float gas_sensor; // gas conc ground truth
     // environment
     float wind[3];
     // sensory result
@@ -81,6 +81,7 @@ typedef struct
     int tdlas_enable;   // 0-disable 1-enable
     inner_point_t tdlas_ref_start_point;
     inner_point_t tdlas_ref_end_point;
+    inner_point_t target_offset;
 } RobotState_t;
 
 typedef struct

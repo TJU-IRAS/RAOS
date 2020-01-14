@@ -367,6 +367,15 @@ void draw_tdlas_line(RobotState_t* state)
     glVertex3f(state->tdlas_ref_end_point[0], -1 * state->tdlas_ref_end_point[2], state->tdlas_ref_end_point[1]);
     glEnd();
     glPopAttrib();
+    /*
+    glPushAttrib(GL_LIGHTING_BIT);
+    glCallList(GR_WHEEL);
+    glBegin(GL_LINES);
+    glVertex3f(state->tdlas_ref_start_point[0], state->tdlas_ref_start_point[2], state->tdlas_ref_start_point[1]);
+    glVertex3f(state->target_offset[0], -1 * state->target_offset[2], state->target_offset[1]);
+    glEnd();
+    glPopAttrib();
+    */
 }
 
 /* End of draw_qr.cxx */

@@ -113,11 +113,11 @@ static void *data_loop(void *args)
 #ifdef READ_CSV_WIND
         if (time_loaded < (time_int + NUM_FORWARD) && !*((bool *) pause))
         {
-            printf("[wind] %dth simulation time.\n", time_int);
+            //printf("[wind] %dth simulation time.\n", time_int);
             pthread_mutex_lock(&data_trans_lock);
             //wind data read function
             read_csv_test(floor(time_loaded / 5.0));
-            printf("[wind] %dth wind data has been loaded.\n", int(ceil(time_loaded / 5)));
+            //printf("[wind] %dth wind data has been loaded.\n", int(ceil(time_loaded / 5)));
             pthread_mutex_unlock(&data_trans_lock);
             time_loaded += 3;
         }

@@ -26,6 +26,8 @@ void SimModel_update(void);
 
 void SimModel_destroy(void);
 
+void SimModel_savesnap();
+
 std::vector<Robot *> *SimModel_get_robots(void);
 
 SimState_t *SimModel_get_sim_state(void);

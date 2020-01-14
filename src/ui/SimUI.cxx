@@ -32,6 +32,7 @@
 #include "ui/icons/icons.h" // pixmap icons used in Tool bar
 #include "ui/SimView.h" // 3D RAO view
 #include "SimThread.h"
+#include "model/SimModel.h"
 #include "SimConfig.h" // runtime RAOS configs
 #include <sstream>
 #include <string>
@@ -329,6 +330,8 @@ void ToolBar::cb_button_pause(Fl_Widget *w, void *data)
         widgets->pause->deactivate(); // make pause button unclickable
         // pause simulation...
         *(sim_get_pauss_control_addr()) = true;
+
+        SimModel_savesnap();
     } else
     {
         // if start button not pressed, pause button will not toggle and no code action will be took

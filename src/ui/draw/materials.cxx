@@ -60,9 +60,13 @@ GLfloat gr_up_ambuse[] = {0.4, 0.4, 0.0, 1.0};
 GLfloat gr_up_specular[] = {0.4, 0.4, 0.0, 1.0};
 GLfloat gr_up_shininess[] = {0};
 
-GLfloat gr_wheel_ambuse[] = {0, 0, 0, 1.0};
-GLfloat gr_wheel_specular[] = {0, 0, 0, 1.0};
+GLfloat gr_wheel_ambuse[] = {0.1, 0.1, 0.1, 1.0};
+GLfloat gr_wheel_specular[] = {0.1, 0.1, 0.1, 1.0};
 GLfloat gr_wheel_shininess[] = {0};
+
+GLfloat buildings_roof_ambuse[] = {0.2, 0.8, 0.6, 1.0};
+GLfloat buildings_roof_specular[] = {0.2, 0.8, 0.6, 1.0};
+GLfloat buildings_roof_shininess[] = {0};
 
 
 /* functions to create different materials */
@@ -174,6 +178,15 @@ static void create_gr_material(void)
     glEndList();
 }
 
+static void create_buildings_material(void)
+{
+    glNewList(BUILDING_ROOF, GL_COMPILE);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, buildings_roof_ambuse);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, buildings_roof_specular);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, buildings_roof_shininess);
+    glEndList();
+}
+
 void create_materials(void)
 {
     create_land_material();
@@ -186,6 +199,7 @@ void create_materials(void)
     create_chlorine_material();
     create_rose_material();
     create_gr_material();
+    create_buildings_material();
 }
 
 // changeable smoke material

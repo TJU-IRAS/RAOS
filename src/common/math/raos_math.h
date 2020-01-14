@@ -15,6 +15,11 @@
 #include <math.h>
 #include <assert.h>
 
+#ifdef FLOAT_EQUAL
+#undef FLOAT_EQUAL
+#endif
+#define FLOAT_EQUAL(x, y) ((x > y + 1E-6) && (x < y - 1E-6))
+
 class inner_point_t
 {
 public:
@@ -100,6 +105,23 @@ public:
         diff_point.y = y - right_value.y;
         diff_point.z = z - right_value.z;
         return diff_point;
+    }
+
+    bool operator<(const inner_point_t& right_value)
+    {
+        if (x < right_value.x)
+        {
+            return true;
+        }
+        else if (FLOAT_EQUAL(x, right_value.x) && y < right_value.y)
+        {
+            return true;
+        }
+        else if (FLOAT_EQUAL(x, right_value.x) && FLOAT_EQUAL(y, right_value.y) && z < right_value.z)
+        {
+            return true;
+        }
+        return false;
     }
 
 public:
