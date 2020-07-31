@@ -11,7 +11,7 @@ cmake_minimum_required(VERSION 3.2 FATAL_ERROR)
 # ================ User can Access ==================
 #====================================================
 # RAOS features, comment out if not need the Aero-olfaction simulation of propellers
-# set(RAOS_FEATURE_WAKES "enable")
+set(RAOS_FEATURE_WAKES "enable")
 
 #====================================================
 # ============= Don't touch the following ===========
@@ -162,6 +162,7 @@ if(RAOS_FEATURE_WAKES)
     cuda_add_library(${LIB_MODEL_NAME}
         src/model/SimModel.cxx
         src/model/plume.cxx
+        src/model/virtual_plume.cpp
         src/model/wake_rotor.cxx src/model/wake.cu
         src/model/robot.cxx src/model/quadrotor.cxx src/model/ground_robot.cpp
         src/model/sensors/sensor_manager.cpp
@@ -173,6 +174,7 @@ else()
     add_library(${LIB_MODEL_NAME}
         src/model/SimModel.cxx
         src/model/plume.cxx
+        src/model/virtual_plume.cpp
         src/model/robot.cxx src/model/quadrotor.cxx src/model/ground_robot.cpp
         src/model/sensors/mox_sensor.cpp src/model/sensors/pid_sensor.cpp
         src/model/sensors/tdlas_sensor.cpp

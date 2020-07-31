@@ -8,9 +8,11 @@
 #include <vector>
 #include <string.h>
 #include <unistd.h>
+#include <chrono>
 #include "method/simulated_annealing_method.h"
 #include "model/robot.h"
 #include "model/plume.h"
+#include "model/virtual_plume.h"
 
 
 #ifdef RAOS_FEATURE_WAKES
@@ -78,7 +80,10 @@ void SimModel_init(void)
     //init windvector
     windget_init(sim_env_info, robots.at(0)->state.pos);
     /* init para... of wakes-induced velocity at puffs */
-    WakesIndVelatPlumePuffsInit(&robots, plume_get_fila_state());
+    WakesIndVelatPlumePuffsInit();
+    //init para... of wakes-induced velocity at adjacent cube
+    WakesInvVelatAdjacentCubeInit();
+    virtual_plume::instance()->init();
 #endif
 
     /* init method */
@@ -118,6 +123,18 @@ void SimModel_update(void)
 #ifdef GET_WIND_BY_CUDA
     WakesIndVelatPlumePuffsUpdate(&robots, wind_get_vector_state());
 #endif
+
+    //save induced velocity field around the robot
+    //std::cout << virtual_plume::instance()->plumes.size() << std::endl;
+
+    //auto start_time = std::chrono::high_resolution_clock::now();
+    WakesInvVelatAdjacentCubeUpdate(&robots, &(virtual_plume::instance()->plumes));
+    //auto end_time = std::chrono::high_resolution_clock::now();
+    //auto diff = end_time - start_time;
+    //std::chrono::microseconds counter = std::chrono::duration_cast<std::chrono::microseconds>(diff);
+    //std::cout << "Calculation time consumption: " << counter.count() / 1000.0f << " ms." << std::endl;
+    virtual_plume::instance()->update_rotor_info(&robots);
+    //virtual_plume::instance()->save_virtual_plume_info();
 #endif
     update_time++;
     windget_updateVel();
@@ -129,6 +146,7 @@ void SimModel_update(void)
     */
 
     plume_update(&sim_state);
+    //save_fila_induced_vel_field();
 
     /* calculate concentration at robot's position */
     std::vector<FilaState_t> *puffs = plume_get_fila_state();
@@ -258,12 +276,12 @@ void SimModel_savesnap()
 
     using namespace HighFive;
     File file("ConcSnap.h5", File::ReadWrite | File::Create | File::Truncate);
+    //0.Save current conc map
     std::vector<size_t> dims(2);
     dims[0] = 150 + 1;
     dims[1] = 150 + 1;
     DataSet dataset =
         file.createDataSet<float>("Conc", DataSpace(dims));
-
     std::vector<std::vector<float>> conc_snap;
     for ( unsigned int x_idx = 0; x_idx < dims[0]; x_idx ++ )
     {
@@ -281,12 +299,19 @@ void SimModel_savesnap()
     }
     dataset.write(conc_snap);
 
+    //1.Save conc history
+    std::vector<size_t> dims_conc_history(1);
+    dims_conc_history[0] = simulated_annealing_method::instance()->search_conc_trajectory.size();
+    DataSet dataset_conc_history =
+        file.createDataSet<float>("ConcHistory", DataSpace(dims_conc_history));
+    dataset_conc_history.write(simulated_annealing_method::instance()->search_conc_trajectory);
+
+    //2.Save searching path
     std::vector<size_t> dims_path(2);
     dims_path[0] = simulated_annealing_method::instance()->search_path_trajectory.size();
     dims_path[1] = 3;
     DataSet dataset_path =
         file.createDataSet<float>("Path", DataSpace(dims_path));
-
     std::vector<std::vector<float>> path_data;
     for ( unsigned int path_idx = 0; path_idx < dims_path[0]; path_idx ++ )
     {
@@ -300,11 +325,24 @@ void SimModel_savesnap()
     }
     dataset_path.write(path_data);
 
+    //3.Save searching points type
     std::vector<size_t> dims_path_type(1);
     dims_path_type[0] = simulated_annealing_method::instance()->search_path_type.size();
     DataSet dataset_path_type =
         file.createDataSet<float>("PathType", DataSpace(dims_path_type));
     dataset_path_type.write(simulated_annealing_method::instance()->search_path_type);
+
+    //3.Save start point
+    std::vector<size_t> dims_start_point(1);
+    dims_start_point[0] = 3;
+    DataSet dataset_start_point =
+        file.createDataSet<float>("StartPoint", DataSpace(dims_start_point));
+    std::vector<float> start_pos;
+    for ( unsigned int idx = 0; idx < 3; idx ++ )
+    {
+        start_pos.emplace_back(simulated_annealing_method::instance()->start_pos[idx]);
+    }
+    dataset_start_point.write(start_pos);
 
     std::cout << "Finish saving concentration snap" << std::endl;
 }

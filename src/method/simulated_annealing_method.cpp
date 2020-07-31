@@ -53,8 +53,9 @@ void simulated_annealing_method::init()
     finding_plume = true;
     sa_moving = false;
 
-    current_pos = inner_point_t(2, -8, 2.5);
-    //current_pos = inner_point_t(0, 2, 2.5);
+    start_pos = inner_point_t(9, 9, 2.5);
+    //start_pos = inner_point_t(0, 2, 2.5);
+    current_pos = start_pos;
     next_pos = current_pos;
 
     sample_count_for_one_position = 36 * 4;
@@ -108,7 +109,7 @@ void simulated_annealing_method::update(SimState_t* sim_state)
                 current_pos = next_pos;
                 search_path_trajectory.emplace_back(current_pos);
                 search_path_type.emplace_back(e_finding_plume);
-                search_conc_trajectory.emplace_back(robot->state.gas_sensor);
+                search_conc_trajectory.emplace_back(cur_conc);
                 generate_next_pos(e_finding_plume);
             }
         }
@@ -159,11 +160,11 @@ void simulated_annealing_method::update(SimState_t* sim_state)
             one_theta_scan_idx ++;
             if ( one_theta_scan_idx >= one_theta_scan_time )
             {
-                conc_array[theta_idx] = robot->center_tdlas_sensor.sensor.get_current_tdlas_reading();
-                //inner_point_t end_point = current_pos+ inner_point_t(x_offset, y_offset, 0);
-                //inner_point_t middle_point = current_pos+ inner_point_t(x_offset/2, y_offset/2, 0);
-                //conc_array[theta_idx] =
-                //    robot->center_tdlas_sensor.sensor.get_simple_conc_evaluation(end_point, middle_point, 0.1f, 7.0f);
+                //conc_array[theta_idx] = robot->center_tdlas_sensor.sensor.get_current_tdlas_reading();
+                inner_point_t end_point = current_pos+ inner_point_t(x_offset, y_offset, 0);
+                inner_point_t middle_point = current_pos+ inner_point_t(x_offset/2, y_offset/2, 0);
+                conc_array[theta_idx] =
+                    robot->center_tdlas_sensor.sensor.get_simple_conc_evaluation(end_point, middle_point, 0.1f, 7.0f);
                 //std::cout << "Current tdlas conc: " << conc_array[theta_idx] << std::endl;
 
                 // Get max conc and direction
@@ -312,7 +313,7 @@ void simulated_annealing_method::stop()
 
 void simulated_annealing_method::generate_next_pos(next_pos_model next_pos_model)
 {
-    //next_pos = inner_point_t(3,8,5);
+    //next_pos = inner_point_t(10,-8,5);
     //return ;
 
     float x_offset = 0.0f;
@@ -385,7 +386,7 @@ void simulated_annealing_method::generate_next_pos(next_pos_model next_pos_model
 
     inner_point_t last_pos = next_pos;
     next_pos = current_pos + inner_point_t(x_offset, y_offset, z_offset);
-    next_pos.z = 4;
+    next_pos.z = 2;
 
     // Judge if invalid position
     // X Y Z limit validation
@@ -505,7 +506,7 @@ bool simulated_annealing_method::judge_local_maximum()
     float dist = (x_max - x_min) * (x_max - x_min) + (y_max - y_min) * (y_max - y_min);
     std::cout << dist << std::endl;
     static unsigned int in_range_times = 0;
-    if ( dist < 21.0f )
+    if ( dist < 22.0f )
     {
         in_range_times ++;
     }
@@ -513,7 +514,7 @@ bool simulated_annealing_method::judge_local_maximum()
     {
         in_range_times = 0;
     }
-    if( in_range_times >= 3 )
+    if( in_range_times >= 5 )
     {
         in_range_times = 0;
         return true;

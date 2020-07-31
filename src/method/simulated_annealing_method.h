@@ -75,6 +75,8 @@ public:
     inner_point_t current_pos;
     inner_point_t next_pos;
 
+    inner_point_t start_pos;
+
     std::vector<inner_point_t>     search_path_trajectory; //Search history info - path
     std::vector<float>             search_conc_trajectory; //Search history info - conc
     std::vector<unsigned int>      search_path_type; // 0-search 1-finding plume 2-leave local
