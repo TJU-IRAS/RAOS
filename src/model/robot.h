@@ -98,6 +98,7 @@ public:
     void destroy(void);
 
 #ifdef RAOS_FEATURE_WAKES
+	//RobotWake, one for each propeller
     std::vector<RotorWake *> wakes; // pointer of array containing pointers of RotorWake instances describing wakes of rotors (if has)
 #endif
     void *model; // robot dynamic model

@@ -214,7 +214,7 @@ void RotorWake::marker_release(void)
     // clear velocity
     memset(new_marker.vel, 0, sizeof(new_marker.vel));
 
-    // calculate the tip vortex circulation: Gamma
+    // calculate the tip vortex circulation: Gamma --- Eq.(2-11)
     new_marker.Gamma = -(rotor_state.direction) * 2.0f * rotor_state.thrust / rotor_state.frame.n_blades /
                        (rotor_state.frame.radius * rotor_state.frame.radius) / 1.185f /
                        rotor_state.Omega; // tip vortex circulation
@@ -269,6 +269,7 @@ void RotorWake::init_wake_geometry(void) {
     sigma = rotor_state.frame.n_blades*rotor_state.frame.chord/(M_PI*rotor_state.frame.radius);
 
     for (int j = max_markers-1; j >= 0; j--) {
+        // Equ (2-15)
         // calculate psi
         psi_rad = j*config.dpsi*M_PI/180.0f;
         // calculate r_tip
