@@ -8,12 +8,17 @@
 #include <vector>
 #include <cstring>
 #include <iostream>
+#include <sstream>
 #include <ctime> // for random seed
 #include "model/plume.h"
 #include "model/environment.h"
 #include "SimConfig.h"
 #include "ziggurat.h" // for normal distribution number
 #include "SimModel.h"
+
+#include <highfive/H5File.hpp>
+#include <highfive/H5DataSet.hpp>
+#include <highfive/H5DataSpace.hpp>
 
 unsigned char cube_obstacle_judge(float* pos);
 
@@ -94,6 +99,10 @@ public:
             float last_pos[3] = {0};
             memcpy(reinterpret_cast<float*>(last_pos), state.at(i).pos, 3 * sizeof(float));
 
+            // here the integrated velocity contains three parts:
+            //  wind[*]: the free stream wind field
+            //  vm_*: the random noise wind speed
+            //  state.at(i).vel[*]: the induced velocity (induced by wakes, updated in WakesIndVelatPlumePuffsUpdate)
             state.at(i).pos[0] += (wind[0] + vm_x + state.at(i).vel[0]) * sim_state->dt;
             state.at(i).pos[1] += (wind[1] + vm_y + state.at(i).vel[1]) * sim_state->dt;
             state.at(i).pos[2] += (wind[2] + vm_z + state.at(i).vel[2]) * sim_state->dt;
@@ -237,8 +246,50 @@ std::vector<FilaState_t> *plume_get_fila_state(void)
     return &fila->state;
 }
 
+void save_fila_induced_vel_field()
+{
+    return ;
+    std::cout << "Begin save plume induced velocity field..." << std::endl;
+    using namespace HighFive;
+    File file("PlumeIndVel.h5", File::ReadWrite | File::Create);
+
+    static unsigned int save_idx = 0;
+
+    std::stringstream dataset_ss;
+    dataset_ss << "PlumeFrame" << save_idx ++;
+    std::string dataset_name = dataset_ss.str();
+
+    unsigned int fila_vec_len = fila->state.size();
+    std::cout << "Dataset name " << dataset_ss.str() << " len " << fila_vec_len << std::endl;
+
+    std::vector<size_t> dims(2);
+    dims[0] = fila_vec_len;
+    dims[1] = 6;
+    DataSet dataset =
+        file.createDataSet<float>(dataset_name, DataSpace(dims));
+
+    std::vector<std::vector<float>> plume_ind_vel;
+    for ( auto iter : fila->state)
+    {
+        std::vector<float> data_vec;
+        for ( unsigned int idx=0; idx < sizeof(iter.pos) / sizeof(iter.pos[0]); idx ++ )
+        {
+            data_vec.emplace_back(iter.pos[idx]);
+        }
+        for ( unsigned int idx=0; idx < sizeof(iter.vel) / sizeof(iter.vel[0]); idx ++ )
+        {
+            data_vec.emplace_back(iter.vel[idx]);
+        }
+        plume_ind_vel.emplace_back(data_vec);
+    }
+    dataset.write(plume_ind_vel);
+    std::cout << "Finish save plume induced velocity field..." << std::endl;
+}
+
 unsigned char cube_obstacle_judge(float* pos)
 {
+    //return 0x00;    // Disable obstacle judgement
+
     float x_range[3][2] = {
         {9.0f, 11.0f}, {14.0f, 16.0f}, {19.0f, 21.0f}
     };

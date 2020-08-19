@@ -33,6 +33,8 @@ typedef struct
 
 std::vector<FilaState_t> *plume_get_fila_state(void);
 
+void save_fila_induced_vel_field();
+
 #endif
 
 #endif

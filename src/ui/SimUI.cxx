@@ -37,6 +37,8 @@
 #include <sstream>
 #include <string>
 
+#include "model/virtual_plume.h"
+
 /*------- Configuration Dialog -------*/
 struct ConfigDlg_widgets
 { // for parameter saving
@@ -331,8 +333,12 @@ void ToolBar::cb_button_pause(Fl_Widget *w, void *data)
         // pause simulation...
         *(sim_get_pauss_control_addr()) = true;
 
-        SimModel_savesnap();
-    } else
+        //SimModel_savesnap();  // save concentration field and searching path (for simulated annealing)
+
+        // save induced velocity filed around robot
+        virtual_plume::instance()->save_virtual_plume_info();
+    }
+    else
     {
         // if start button not pressed, pause button will not toggle and no code action will be took
         widgets->pause->clear();

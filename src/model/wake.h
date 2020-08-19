@@ -18,9 +18,14 @@ void WakesUpdate(std::vector<Robot *> *, const char *, SimState_t *,
 void WakesFinish(void);
 
 // for plume puffs
-void WakesIndVelatPlumePuffsInit(std::vector<Robot *> *, std::vector<FilaState_t> *);
+void WakesIndVelatPlumePuffsInit();
 
 void WakesIndVelatPlumePuffsUpdate(std::vector<Robot *> *, std::vector<FilaState_t> *);
+
+//for a cube around the robot wake
+void WakesInvVelatAdjacentCubeInit();
+
+void WakesInvVelatAdjacentCubeUpdate(std::vector<Robot*> *robots, std::vector<FilaState_t> *);
 
 #endif
 
